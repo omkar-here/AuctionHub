@@ -3,6 +3,7 @@ import "./App.css";
 import Registration from "./Components/Registration";
 import Login from "./Components/Login";
 import MainPage from "./Components/MainPage";
+import Cards from "./Components/Cards";
 import {
   Route,
   createBrowserRouter,
@@ -28,7 +29,17 @@ function App() {
       {/* <Registration /> */}
       {/* <Login /> */}
       {/* <MainPage /> */}
-      <RouterProvider router={router} />
+      <div className="mt-6 w-full h-full border-2 flex flex-row flex-wrap justify-evenly">
+        <Cards />
+        <Cards />
+        <Cards />
+        <Cards />
+        <Cards />
+        <Cards />
+        <Cards />
+        <Cards />
+      </div>
+      {/* <RouterProvider router={router} /> */}
     </>
   );
 }
