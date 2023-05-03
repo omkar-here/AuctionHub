@@ -1,42 +1,120 @@
 import React from "react";
 import IconImage from "../../public/images/icon.png";
-import { Outlet } from "react-router-dom";
+import { Outlet, NavLink, Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Navbar, Container, Nav } from "react-bootstrap";
 import ReactModal from "react-modal";
-
+import { useEffect } from "react";
 const Layout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [location, setLocation] = useState(useLocation());
 
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch("http://localhost:5000/liveAuction");
+      const json = await response.json();
+      setData(json);
+      console.log(json)
+    }
+
+    fetchData();
+  }, []);
+
+  const [formData, setFormData] = useState({
+    product_image: "",
+    product_name: "",
+    product_price: "",
+    expiry_time: "",
+    expiry_date: "",
+    category: "",
+  });
+
+
+
+  const handleChange = (event) => {
+    console.log(formData);
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value });
+  };
+  const handleTime = (event) => {
+    // console.log(formData);
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value+":00" });
+  };
+  const handleImageChange = (event) => {
+    const { value } = event.target.files[0];
+    const { name } = event.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (event) => {
+    // console.log("handleSubmt");
+    // console.log(formData);
+    event.preventDefault();
+    const temp = JSON.stringify(formData);
+    console.log(temp);
+    fetch("http://localhost:5000/createAuction", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+      // body: {'test':'test'}
+      // body: (formData)
+    })
+      // .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error(error));
+  };
+  console.log(location.pathname);
+  const buttons = () => {
+    if (location.pathname === "/loggedIn") {
+      return (
+        <div>
+          <button type="button">
+            {isLoggedIn ? (
+              <NavLink className="btn btn-primary  w-75 py-2  " to="/login">
+                Logout
+              </NavLink>
+            ) : (
+              <NavLink className="btn btn-danger py-2" to="/login">
+                Login
+              </NavLink>
+            )}
+          </button>
+          <NavLink to="register" className="btn btn-primary pt-2">
+            Register
+          </NavLink>
+        </div>
+      );
+    } else {
+      return (
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="btn btn-danger"
+        >
+          Create an auction
+        </button>
+      );
+    }
+  };
   return (
     <div>
-      <div
-        // className=" d-flex justify-content-between align-items-center py-2 px-5"
-        className="flex  align-items-center py-2 px-5  w-screen bg-[#73c8d2] "
-        // style={{
-        //   backgroundColor: "#73c8d2",
-        //   margin: "0px",
-        //   padding: "0px",
-        //   width: "1560px",
-        //   display: "flex",
-        //   // align:'center'
-        // }}
-      >
+      <div className="flex  align-items-center py-2 px-5  w-screen bg-[#73c8d2] ">
         <div>
           <h1>AuctionHub</h1>
         </div>
         <div className="d-flex gap-3 ml-[800px]">
-          <button
-            type="button"
-            className="btn btn-primary btn-primary-hover btn-primary-focus w-75"
-          >
-            Logout
-          </button>
+          {/* <div className="btn btn-primary">
+              Login
+            </div> */}
           <ReactModal
             isOpen={isModalOpen}
             onRequestClose={() => setIsModalOpen(false)}
             style={{
-              
               overlay: {
                 backgroundColor: "rgba(0, 0, 0, 0.75)",
               },
@@ -46,117 +124,154 @@ const Layout = () => {
               },
             }}
           >
-            <div className="rounded-4xl m-0 p-0">
+            <div className="rounded-4xl m-0 p-0 ">
               {/* <div className="col-sm-9 mb-3 mb-sm-0"> */}
-                <div
-                  className="card"
-                  style={{
-                    // marginLeft: "350px",
-                    marginTop:'0px',
-                    borderRadius: "20px",
-                    borderColor: "#75d2dd",
-                    borderWidth: "20px",
-                  }}
-                >
-                  <div className="card-body">
-                    <h1
-                      className="card-title"
-                      style={{ alignContent: "center" }}
-                    >
-                      Create An Auction
-                    </h1>
-                    <hr />
-                    <form>
-                      <div className="form-group">
-                        <label htmlFor="nameField">Product Name</label>
-                        <input
-                          type="text"
-                          id="nameField"
-                          placeholder="Enter here"
-                          className="form-control"
-                        />
-                      </div>
-                      <div className="form-group mt-4">
-                        <label htmlFor="price">Product Price (in INR)</label>
-                        <input
-                          type="text"
-                          id="price"
-                          placeholder="Enter here"
-                          className="form-control"
-                        />
-                      </div>
-                      <div className="form-group mt-4">
-                        <label htmlFor="expiry">Expiry</label>
-                        <input
-                          type="date"
-                          id="expiry"
-                          placeholder="Enter here"
-                          className="form-control"
-                        />
-                      </div>
-                      <div className="form-group mt-4">
-                        <label htmlFor="category">Product Category</label>
-                        <select
-                          className="form-select"
-                          id="category"
-                          aria-label="Default select example"
-                        >
-                          <option selected>Select Product Category</option>
-                          <option value="1">Automobile</option>
-                          <option value="2">Electronics</option>
-                          <option value="3">Furniture</option>
-                        </select>
-                      </div>
-                      <div className="form-group mt-4">
-                        <label htmlFor="imgField">Product Image</label>
-                        <input
-                          id="imgField"
-                          type="file"
-                          className="form-control"
-                        />
-                      </div>
-                      <br />
-                      <center>
-                        <button onClick={() => setIsModalOpen(false)} type="submit" className="btn btn-primary">
-                          Submit
-                        </button>
-                      </center>
-                    </form>
-                  </div>
+              <div
+                className="card"
+                style={{
+                  // marginLeft: "350px",
+                  marginTop: "0px",
+                  borderRadius: "20px",
+                  borderColor: "#75d2dd",
+                  borderWidth: "20px",
+                }}
+              >
+                <div className="card-body">
+                  <h1 className="card-title ">Create An Auction</h1>
+                  <hr />
+                  <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                      <label htmlFor="nameField">Product Name</label>
+                      <input
+                        type="text"
+                        id="nameField"
+                        placeholder="Enter here"
+                        className="form-control"
+                        name="product_name"
+                        onChange={handleChange}
+                        value={formData.product_name}
+                      />
+                    </div>
+                    <div className="form-group mt-4">
+                      <label htmlFor="price">Product Price (in INR)</label>
+                      <input
+                        type="text"
+                        id="price"
+                        placeholder="Enter here"
+                        className="form-control"
+                        name="product_price"
+                        onChange={handleChange}
+                        value={formData.product_price}
+                      />
+                    </div>
+
+                    <div className="form-group mt-4">
+                      <label htmlFor="expiry_date">Expiry</label>
+                      <input
+                        type="date"
+                        id="expiry"
+                        placeholder="Enter here"
+                        className="form-control"
+                        name="expiry_date"
+                        onChange={handleChange}
+                        value={formData.expiry_date}
+                      />
+                    </div>
+                    <div className="form-group mt-4">
+                      <label htmlFor="expiry">Expiry</label>
+                      <input
+                        type="time"
+                        id="expiry_time"
+                        placeholder="Enter here"
+                        className="form-control"
+                        name="expiry_time"
+                        onChange={handleChange}
+                        value={formData.expiry_time}
+                        step="1"
+                      />
+                    </div>
+
+                    <div className="form-group mt-4">
+                      <label htmlFor="category">Product Category</label>
+                      <select
+                        className="form-select"
+                        id="category"
+                        aria-label="Default select example"
+                        name="category"
+                        onChange={handleChange}
+                        value={formData.category}
+                      >
+                        <option defaultValue>Select Product Category</option>
+                        <option value="1">Automobile</option>
+                        <option value="2">Electronics</option>
+                        <option value="3">Furniture</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group mt-4">
+                      <label htmlFor="imgField">Product Image</label>
+                      <input
+                        id="imgField"
+                        name="product_image"
+                        type="file"
+                        className="form-control"
+                        onChange={handleChange}
+                        value={formData.product_image}
+                      />
+                    </div>
+
+                    <div className="form-group mt-4 text-center">
+                      <button
+                        onSubmit={handleSubmit}
+                        type="submit"
+                        className="btn btn-primary"
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </form>
                 </div>
+              </div>
               {/* </div> */}
               {/* <button >Close Modal</button> */}
             </div>
+            ;
           </ReactModal>
-
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="btn btn-danger"
-          >
-            Create an auction
-          </button>
+          <div>
+            {location.pathname === "/loggedIn" ? (
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="btn btn-danger"
+              >
+                Create an auction
+              </button>
+            ) : (
+              <div className="flex gap-4">
+                <button type="button">
+                  {isLoggedIn ? (
+                    <NavLink
+                      className="btn btn-primary  w-75 py-2  "
+                      to="/login"
+                    >
+                      Logout
+                    </NavLink>
+                  ) : (
+                    <NavLink className="btn btn-danger py-2" to="/login">
+                      Login
+                    </NavLink>
+                  )}
+                </button>
+                <NavLink to="register" className="btn btn-primary pt-2">
+                  Register
+                </NavLink>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      <div className=" border-2 w-[300px] px-3 py-9 h-screen bg-[#9EE5ED]">
-        <p className="text-3xl pb-2 text-center py-1 cursor-pointer hover:text-4xl bg-[#73c8d2] rounded-2xl text-left border-b-4 border-red-500">
-          Live Bids
-        </p>
-        <p className="text-3xl pb-2 text-center py-1 cursor-pointer hover:text-4xl bg-[#73c8d2] rounded-2xl  text-left border-b-4 border-red-500">
-          Order History
-        </p>
-        <p className="text-3xl pb-2 text-center py-1 cursor-pointer hover:text-4xl bg-[#73c8d2] rounded-2xl  text-left border-b-4 border-red-500">
-          Queries
-        </p>
-        <p className="text-3xl pb-2 text-center py-1 cursor-pointer hover:text-4xl bg-[#73c8d2] rounded-2xl  text-left border-b-4 border-red-500">
-          Responses
-        </p>
-        <p className="text-3xl pb-2 text-center py-1 cursor-pointer hover:text-4xl bg-[#73c8d2] rounded-2xl  text-left border-b-4 border-red-500">
-          Unsold
-        </p>
-        <p className="text-3xl pb-2 text-center py-1 cursor-pointer hover:text-4xl bg-[#73c8d2] rounded-2xl  text-left border-b-4 border-red-500">
-          Successful Bids
-        </p>
+      <div>
+        <Outlet setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} />
       </div>
     </div>
   );
